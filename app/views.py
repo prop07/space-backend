@@ -111,7 +111,7 @@ def field(request, id):
             try:
                 field = Field.objects.get(space_code=space, field_code=field_code)
             except Field.DoesNotExist:
-                return Response({"status":"error","message": "Field not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"status":"error","message": "Field not found or not related to this space."}, status=status.HTTP_404_NOT_FOUND)
                 
             if not data.get("title") or not data.get("content"):
                 return Response({"status":"error","message": "Title and Content are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -146,10 +146,10 @@ def field(request, id):
             try:
                 field = Field.objects.get(space_code=space, field_code=field_code)
             except Field.DoesNotExist:
-                return Response({"status":"error","message": "Field not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"status":"error","message": "Field not found or not related to this space."}, status=status.HTTP_404_NOT_FOUND)
 
             field.delete()
-            return Response({"status":"success","message": "Deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"status":"success","message": "Deleted successfully."}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"status":"error","message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
