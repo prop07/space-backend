@@ -1,0 +1,1 @@
+ssh -i "../space-server.pem" ec2-user@ec2-13-201-137-43.ap-south-1.compute.amazonaws.com
