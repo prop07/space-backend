@@ -21,4 +21,4 @@ COPY . .
 EXPOSE 8000
 
 # Set the script as the entry point
-ENTRYPOINT ["sh", "scripts/init.sh"]
+ENTRYPOINT ["sh", "scripts/init_docker.sh"]
