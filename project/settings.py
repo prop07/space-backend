@@ -1,25 +1,18 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load SECRET_KEY, DEBUG, and other values from the environment variables
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-+5ksi1yq6tq5e(o^@(h-*eft_fyx-@uixo-0-%jjg=g-rb3)&w')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'  # Convert DEBUG to boolean
-
+# Security
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
-
-# Load additional environment variables for EC2 connection and superuser credentials
-KEY_FILE = os.getenv('KEY_FILE', '/path/to/your/key.pem')
-USER = os.getenv('USER', 'ec2-user')
-HOST = os.getenv('HOST', 'your-ec2-instance-ip-or-dns')
-SUPERUSER_EMAIL = os.getenv('SUPERUSER_EMAIL', 'prop@gmail.com')
-SUPERUSER_PASSWORD = os.getenv('SUPERUSER_PASSWORD', 'prop')
 
 # Application definition
 INSTALLED_APPS = [
@@ -29,7 +22,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # app
     'app',
     'rest_framework',
     'corsheaders',
@@ -43,7 +35,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # middleware
     'corsheaders.middleware.CorsMiddleware',
     'app.middleware.ServerRuntimeMiddleware',
 ]
@@ -68,70 +59,61 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# Database configuration
+# Replace the DATABASES section of your settings.py with this
+database = urlparse(os.getenv("DATABASE"))
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': str(database.path).replace('/', ''),
+        'USER': database.username,
+        'PASSWORD': database.password,
+        'HOST': database.hostname,
+        'PORT': 5432,
+        'OPTIONS': {
+            'sslmode': 'require',  # Enforces SSL
+        },
     }
 }
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
+# Localization
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+# Static files
 STATIC_URL = 'static/'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Rest Framework
+# REST framework settings
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
     'EXCEPTION_HANDLER': 'project.utils.custom_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissions'
     ]
 }
 
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://frontend-domain.com",
 ]
 
-# Additional config (for EC2 connection and superuser management, if needed)
-# Example:
-# print(f"Connecting to EC2 instance {USER}@{HOST} using key file {KEY_FILE}")
+# Environment-specific variables for EC2 and superuser credentials
+KEY_FILE = os.getenv('KEY_FILE')
+USER = os.getenv('USER')
+HOST = os.getenv('HOST')
+SUPERUSER_EMAIL = os.getenv('SUPERUSER_EMAIL')
+SUPERUSER_PASSWORD = os.getenv('SUPERUSER_PASSWORD')

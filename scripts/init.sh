@@ -1,45 +1,48 @@
 #!/bin/bash
 
-# Load environment variables from .env file
+# Load .env file
 if [ -f .env ]; then
-    export $(cat .env | xargs)
+    export $(grep -v '^#' .env | xargs)
+else
+    echo ".env file not found!"
+    exit 1
 fi
 
-# Ensure the key file exists
 if [ ! -f "$KEY_FILE" ]; then
     echo "Error: Key file not found at $KEY_FILE. Exiting."
     exit 1
 fi
 
-# Set key file permissions
 chmod 600 "$KEY_FILE"
 
-# Function to connect to the EC2 instance
-connect_instance() {
-    echo "Connecting to EC2 instance..."
-    ssh -i "$KEY_FILE" "$USER@$HOST"
+print_smiley() {
+    echo -ne "🙂 Connecting...\r"
+    sleep 0.5
 }
 
-# Function to upload files/folders to EC2
+# EC2 instance
+connect_instance() {
+    print_smiley
+    echo "Connecting to EC2 instance..."
+    ssh -i "$KEY_FILE" "$USER@$HOST"
+    exit 0 
+}
+
+# upload files/folders to EC2
 upload_to_ec2() {
-    # Ask for the directory to copy
     read -p "Enter the full path of the file or folder you want to copy: " source_path
 
-    # Verify if the path exists
     if [ ! -e "$source_path" ]; then
         echo "Error: The path '$source_path' does not exist. Exiting."
         return
     fi
-
-    # Ask for the subdirectory within /home/ec2-user/
     read -p "Enter the subdirectory within /home/ec2-user/ to push to (leave blank for root of /home/ec2-user/): " subdirectory
-    destination_path="/home/ec2-user/${subdirectory#/}"  # Ensure no leading slash in subdirectory
+    destination_path="/home/ec2-user/${subdirectory#/}"  
 
-    # Copy file or folder to EC2
+    print_smiley
     echo "Copying '$source_path' to '$USER@$HOST:$destination_path'..."
     scp -i "$KEY_FILE" -r "$source_path" "$USER@$HOST:$destination_path"
 
-    # Check if the command succeeded
     if [ $? -eq 0 ]; then
         echo "Successfully copied '$source_path' to EC2 instance at '$destination_path'."
     else
@@ -47,12 +50,26 @@ upload_to_ec2() {
     fi
 }
 
+# PostgreSQL database
+connect_database() {
+    if [ -z "$DATABASE" ]; then
+        echo "DATABASE_URL is not set in the environment."
+        return
+    fi
+
+    print_smiley
+    echo "Connecting to PostgreSQL database..."
+    psql "$DATABASE"
+    exit 0 
+}
+
 # Main menu
 while true; do
     echo "======================="
-    echo "1. Connect to instance"
-    echo "2. Upload file/folder"
-    echo "3. Exit"
+    echo "1. Connect to EC2 instance"
+    echo "2. Upload file/folder to EC2"
+    echo "3. Connect to PostgreSQL database"
+    echo "4. Exit"
     echo "======================="
     read -p "Choose an option: " choice
 
@@ -64,7 +81,10 @@ while true; do
             upload_to_ec2
             ;;
         3)
-            echo "Exiting. Goodbye!"
+            connect_database
+            ;;
+        4)
+            echo "🎉 Happy Coding! 🎉"
             exit 0
             ;;
         *)
