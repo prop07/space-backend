@@ -8,14 +8,13 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Copy the current directory contents into the container at /app
 COPY . .
 
-
 # Expose port 8000 to allow access from outside the container
 EXPOSE 8000
 
-# Combine collectstatic and runserver in a single command
+# Collect static files and run the server
 CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"]
