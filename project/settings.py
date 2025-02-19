@@ -108,6 +108,10 @@ REST_FRAMEWORK = {
     ]
 }
 
+CSRF_TRUSTED_ORIGINS = ["https://rijalmanoj.com.np"]
+
+ALLOWED_HOSTS = ["rijalmanoj.com.np"]
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
