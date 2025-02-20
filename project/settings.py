@@ -60,21 +60,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project.wsgi.application'
 
-# Database configuration
 # Replace the DATABASES section of your settings.py with this
-database = urlparse(os.getenv("DATABASE"))
+tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': str(database.path).replace('/', ''),
-        'USER': database.username,
-        'PASSWORD': database.password,
-        'HOST': database.hostname,
+        'NAME': tmpPostgres.path.replace('/', ''),
+        'USER': tmpPostgres.username,
+        'PASSWORD': tmpPostgres.password,
+        'HOST': tmpPostgres.hostname,
         'PORT': 5432,
-        'OPTIONS': {
-            'sslmode': 'require',  # Enforces SSL
-        },
     }
 }
 
@@ -110,10 +106,11 @@ REST_FRAMEWORK = {
 
 CSRF_TRUSTED_ORIGINS = ["https://rijalmanoj.com.np"]
 
-ALLOWED_HOSTS = ["rijalmanoj.com.np"]
+ALLOWED_HOSTS = ["rijalmanoj.com.np","127.0.0.1", "localhost"]
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",
     "http://localhost:5173",
     "https://frontend-domain.com",
 ]

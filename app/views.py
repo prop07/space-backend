@@ -25,13 +25,15 @@ def index(request):
 @permission_classes([AllowAny])
 def space(request):
     if request.method == "GET":
-        unique_value = str(uuid.uuid4())
-        new_space = Space.objects.create(code=unique_value)
+        space_code = str(uuid.uuid4())
+        view_code = str(uuid.uuid4())
+        new_space = Space.objects.create(code=space_code,view_code=view_code)
         return Response(
             {
                 "status": "success",
                 "data": {
                     "space_code": new_space.code,
+                    "view_code":new_space.view_code,
                     "date": new_space.created_date,
                 },
                 "message": "Space successfully created.",
@@ -195,3 +197,51 @@ def field(request, id):
         {"status": "error", "message": "Invalid HTTP method"},
         status=status.HTTP_405_METHOD_NOT_ALLOWED,
     )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def view(request):
+    if request.method != "POST":
+        return Response(
+            {"status": "error", "message": "Method not allowed"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    request_type = request.data.get("type")
+    if request_type != "space":
+        return Response(
+            {"status": "error", "message": "Invalid view or type."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    view_code = request.data.get("view_code")
+    if not view_code:
+        return Response(
+            {"status": "error", "message": "view_code is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        space = Space.objects.get(view_code=view_code)
+        
+        fields = Field.objects.filter(space_code=space).values(
+            "field_code", "title", "last_modified", "content"
+        )
+
+        return Response(
+            {
+                "status": "success",
+                "message": "Space found.",
+                "data": {
+                    "view_code": space.view_code,
+                    "fields": list(fields)[::-1],
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Space.DoesNotExist:
+        return Response(
+            {"status": "error", "message": "Invalid view or type."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
