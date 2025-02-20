@@ -7,4 +7,4 @@ space-server.pem
 __pycache__/
 
 # Ignore Django migration cache files
-app/migrations/*.py
+app/migrations/
