@@ -1,3 +1,14 @@
 .venv
 .env
 space-server.pem
+
+# Ignore compiled Python files
+*.pyc
+__pycache__/
+
+# Ignore Django migration cache files
+app/migrations/
+
+# Do NOT ignore actual migration files!
+# Uncomment the next line ONLY if you want to ignore ALL migrations (not recommended)
+# app/migrations/*.py
