@@ -83,6 +83,8 @@ def field(request, id):
             return Response(
                 {
                     "status": "success",
+                    "code": space.code,
+                    "view_code": space.view_code,
                     "data": {"fields": list(fields)[::-1]},
                     "message": "Data retrieved successfully.",
                 },
