@@ -1,19 +1,40 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+import environ
+import sys
 from urllib.parse import urlparse
 
-# Load environment variables from .env file
-load_dotenv()
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize environment variables
+env = environ.Env()
+
+# Read the base .env file
+env.read_env(os.path.join(BASE_DIR, '.env'))
+
+# Determine which environment-specific .env file to load
+environment = env('ENVIRONMENT')
+env_file = (f'.env.{environment}')
+
+
+if os.path.exists(env_file):
+    # Load the environment file
+    print(f"Loaded environment: {env_file}")
+    env.read_env(env_file)
+else:
+    print(f"{env_file} file does not exist")
+    sys.exit(1)
+
+
+
+
 # Security
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-default-key')
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+print("DEBUG:", env("DEBUG"))
+DEBUG = env.bool("DEBUG")
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -61,15 +82,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project.wsgi.application'
 
 # Replace the DATABASES section of your settings.py with this
-tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
+Postgres = urlparse(env("DATABASE_URL"))
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': tmpPostgres.path.replace('/', ''),
-        'USER': tmpPostgres.username,
-        'PASSWORD': tmpPostgres.password,
-        'HOST': tmpPostgres.hostname,
+        'NAME': Postgres.path.replace('/', ''),
+        'USER': Postgres.username,
+        'PASSWORD': Postgres.password,
+        'HOST': Postgres.hostname,
         'PORT': 5432,
     }
 }
@@ -104,28 +125,15 @@ REST_FRAMEWORK = {
     ]
 }
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://space.rijalmanoj.com.np",
-    "http://127.0.0.1:8000", 
-    "http://localhost:8080", 
-]
 
-ALLOWED_HOSTS = [
-    "space.rijalmanoj.com.np",
-    "127.0.0.1",
-    "localhost",
-]
+ENV_CSRF_TRUSTED_ORIGINS =env("CSRF_TRUSTED_ORIGINS")
+ENV_ALLOWED_HOSTS =env("ALLOWED_HOSTS")
+ENV_CORS_ALLOWED_ORIGINS =env("CORS_ALLOWED_ORIGINS")
+print("Trusted Origin:",ENV_CSRF_TRUSTED_ORIGINS.split(','))
+print("Allowed Host:",ENV_ALLOWED_HOSTS.split(','))
+print("Cors Allowed Origin:",ENV_CORS_ALLOWED_ORIGINS.split(','))
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:8000",
-    "http://localhost:5173",
-    "https://frontend-domain.com",
-]
 
-# Environment-specific variables for EC2 and superuser credentials
-KEY_FILE = os.getenv('KEY_FILE')
-USER = os.getenv('USER')
-HOST = os.getenv('HOST')
-SUPERUSER_EMAIL = os.getenv('SUPERUSER_EMAIL')
-SUPERUSER_PASSWORD = os.getenv('SUPERUSER_PASSWORD')
+CSRF_TRUSTED_ORIGINS = ENV_CSRF_TRUSTED_ORIGINS.split(',')
+ALLOWED_HOSTS = ENV_ALLOWED_HOSTS.split(',')
+CORS_ALLOWED_ORIGINS = ENV_CORS_ALLOWED_ORIGINS.split(',')

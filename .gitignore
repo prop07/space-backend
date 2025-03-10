@@ -1,5 +1,7 @@
 .venv
 .env
+.env.development
+.env.production
 space-server.pem
 
 # Ignore compiled Python files
